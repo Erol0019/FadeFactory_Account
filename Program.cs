@@ -1,154 +1,72 @@
-﻿using Microsoft.EntityFrameworkCore;
-using FadeFactory_Account.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Cosmos;
-using FadeFactory_Account.Data;
-using DotEnv;
+using FadeFactory_Accounts.Controllers;
+using System.Configuration;
+using FadeFactory_Accounts.Data;
+using Microsoft.Azure.Cosmos;
+using System.Net;
+using System.Collections;
+using DotNetEnv;
 
-using (var fadeFactoryContext = new FadeFactoryContext())
+
+var builder = WebApplication.CreateBuilder(args);
+
+DotNetEnv.Env.Load(); //Added
+
+var configuration = builder.Configuration; //Added
+
+// Add services to the container.
+
+//added
+builder.Services.AddSingleton((provider) =>
 {
-    #region Inserting Accounts
-
-    var account1 = new Account()
+    var cosmosDbEndpoint = Environment.GetEnvironmentVariable("cosmosDbEndpoint");
+    var cosmosDbKey = Environment.GetEnvironmentVariable("cosmosDbKey");
+    var cosmosDbName = Environment.GetEnvironmentVariable("cosmosDbName");
+    if (string.IsNullOrEmpty(cosmosDbEndpoint) || string.IsNullOrEmpty(cosmosDbKey) || string.IsNullOrEmpty(cosmosDbName))
     {
-        Id = Guid.NewGuid().ToString(),
-        LastName = "Martin",
-        FirstName = "Kenneth",
-        birthDate = new DateTime(1998, 12, 8),
-        Email = "hygge@hotmail.com",
-        Address = "Kea 1.tv",
-        Phone = "20202020"
+        throw new ArgumentNullException("Cosmos DB configuration is missing.");
+    }
 
+    // var cosmosDbEndpoint = configuration["cosmosDbSettings:cosmosDbEndpoint"];
+    // var cosmosDbKey = configuration["cosmosDbSettings:cosmosDbKey"];
+    // var cosmosDbName = configuration["cosmosDbSettings:cosmosDbName"];
+
+    var cosmosClientOptions = new CosmosClientOptions
+    {
+        ApplicationName = cosmosDbName
     };
 
-    var account2 = new Account()
+    var loggerFactory = LoggerFactory.Create(builder =>
     {
-        Id = Guid.NewGuid().ToString(),
-        LastName = "John",
-        FirstName = "Wick",
-        birthDate = new DateTime(1992, 10, 10),
-        Email = "Emanuel@hotmail.com",
-        Address = "Kea 3.tv",
-        Phone = "21212121",
-    };
-    fadeFactoryContext.Accounts?.Add(account1);
-    fadeFactoryContext.Accounts?.Add(account2);
+        builder.AddConsole();
+    });
 
-    await fadeFactoryContext.SaveChangesAsync();
+    var cosmosClient = new CosmosClient(cosmosDbEndpoint, cosmosDbKey, cosmosClientOptions);
 
-    Console.WriteLine("accounts inserted");
+    cosmosClient.ClientOptions.ConnectionMode = ConnectionMode.Gateway;
 
-    #endregion
+    return cosmosClient;
+});
+//end
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-    // #region Inserting Customers
+builder.Services.AddScoped<IAccountRepository, AccountRepository>(); //added
 
+var app = builder.Build();
 
-    // Customer customer1 = new Customer()
-    // {
-    //     Id = Guid.NewGuid().ToString(),
-    //     LastName = "Denzel",
-    //     FirstName = "Washington",
-    //     birthDate = new DateTime(1993, 11, 8),
-    //     Email = "Okay@hotmail.com",
-    //     Address = "Kea 2.tv",
-    //     Phone = "22222222",
-    //     Orders = new List<Order>()
-    //     {
-    //         new Order()
-    //         {
-    //             Id = Guid.NewGuid().ToString(),
-    //             Fade = 200.00
-    //         },
-    //     }
-    // };
-    // fadeFactoryContext.Customers?.Add(customer1);
-    // await fadeFactoryContext.SaveChangesAsync();
-
-    // Console.WriteLine("customers inserted");
-    // #endregion
-
-    // #region GET Accounts
-
-    // if (fadeFactoryContext.Accounts != null)
-    // {
-    //     var accounts = await fadeFactoryContext.Accounts.ToListAsync();
-    //     Console.WriteLine("");
-
-    //     foreach (var account in accounts)
-    //     {
-    //         Console.WriteLine($"Account Id: {account.Id}");
-    //         Console.WriteLine($"Account FirstName: {account.FirstName}");
-    //         Console.WriteLine($"Account LastName: {account.LastName}");
-    //         Console.WriteLine($"Account birthDate: {account.birthDate}");
-    //         Console.WriteLine($"Account Email: {account.Email}");
-    //         Console.WriteLine($"Account Address: {account.Address}");
-    //         Console.WriteLine($"Account Phone: {account.Phone}");
-    //         Console.WriteLine("--------------------------------\n");
-    //     }
-    // }
-    // #endregion
-
-    // #region Get an Account by FirstName
-
-    // if (fadeFactoryContext.Accounts != null)
-    // {
-    //     var account = await fadeFactoryContext.Accounts
-    //         .Where(a => a.FirstName == "Wick")
-    //         .FirstOrDefaultAsync();
-
-    //     Console.WriteLine("");
-
-    //     Console.WriteLine($"Account Id: {account?.Id}");
-    //     Console.WriteLine($"Account FirstName: {account?.FirstName}");
-    //     Console.WriteLine($"Account LastName: {account?.LastName}");
-    //     Console.WriteLine($"Account birthDate: {account?.birthDate}");
-    //     Console.WriteLine($"Account Email: {account?.Email}");
-    //     Console.WriteLine($"Account Address: {account?.Address}");
-    //     Console.WriteLine($"Account Phone: {account?.Phone}");
-    //     Console.WriteLine("--------------------------------\n");
-    // }
-
-    // #endregion
-
-    // #region Update an Account
-
-    // if (fadeFactoryContext.Accounts != null)
-    // {
-    //     var account = await fadeFactoryContext.Accounts
-    //         .Where(e => e.FirstName == "Wick")
-    //         .FirstOrDefaultAsync();
-
-    //     if (account != null)
-    //     {
-    //         account.LastName = "Dog";
-    //         account.birthDate = new DateTime(2002, 12, 01);
-
-    //         await fadeFactoryContext.SaveChangesAsync();
-
-    //         Console.WriteLine("\nIt has been updated.\n");
-    //     }
-    // }
-
-    // #endregion
-    // #region Delete an Account
-
-    // if (fadeFactoryContext.Accounts != null)
-    // {
-    //     var account = await fadeFactoryContext.Accounts
-    //         .Where(e => e.FirstName == "Kenneth")
-    //         .FirstOrDefaultAsync();
-
-    //     if (account != null)
-    //     {
-    //         fadeFactoryContext.Accounts.Remove(account);
-    //         await fadeFactoryContext.SaveChangesAsync();
-
-    //         Console.WriteLine("\nThe account has been deleted.\n");
-    //     }
-    // }
-
-    // #endregion
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

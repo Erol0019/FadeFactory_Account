@@ -44,7 +44,7 @@ namespace FadeFactory_Accounts.Controllers
         {
             if (accountRegister.FirstName != request.FirstName)
             {
-                return BadRequest("Invalid Username");
+                return BadRequest("Invalid account");
             }
 
             if (!VerifyPasswordHash(request.Password, accountRegister.PasswordHash, accountRegister.PasswordSalt))
@@ -86,9 +86,9 @@ namespace FadeFactory_Accounts.Controllers
             }
         }
         [HttpGet("{account}")]
-        public ActionResult<AccountRegister> GetUser(string username)
+        public ActionResult<AccountRegister> GetUser(string account)
         {
-            if (accountRegister.FirstName == username)
+            if (accountRegister.FirstName == account)
             {
                 return Ok(accountRegister);
             }

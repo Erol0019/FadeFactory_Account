@@ -15,7 +15,7 @@ namespace FadeFactory_Accounts.Controllers
         {
             _accountRepository = accountRepository;
         }
-        [HttpGet("account/{Id}")]
+        [HttpGet("{Id}")]
         public async Task<ActionResult<Account>> GetAccountByIdAsync(string Id)
 
         {
@@ -27,14 +27,14 @@ namespace FadeFactory_Accounts.Controllers
 
             return Ok(tasks);
         }
-        [HttpGet("accounts")]
+        [HttpGet("getAll")]
         public async Task<ActionResult<IEnumerable<Account>>> GetAllAccounts()
         {
             var accounts = await _accountRepository.GetAllAccountsAsync();
             return Ok(accounts);
         }
 
-        [HttpPost]
+        [HttpPost("register")]
         public async Task<ActionResult<Account>> CreateAccount(Account account)
         {
             account.Id = Guid.NewGuid().ToString();
@@ -42,7 +42,7 @@ namespace FadeFactory_Accounts.Controllers
             var createdAccount = await _accountRepository.CreateAccountAsync(account);
             return CreatedAtAction(nameof(GetAccountByIdAsync), new { createdAccount.Id }, createdAccount);
         }
-        [HttpDelete("delete/{Id}")]
+        [HttpDelete("{Id}")]
         public async Task<IActionResult> DeleteAccount(string Id)
         {
             var existingAccount = await _accountRepository.GetAccountByIdAsync(Id);

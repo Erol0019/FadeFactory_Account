@@ -69,7 +69,7 @@ namespace FadeFactory_Accounts.Controllers
 
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.Now.AddDays(10),
                 signingCredentials: creds
             );
 

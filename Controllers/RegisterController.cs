@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using FadeFactory_Accounts.Models;
-using FadeFactory_Accounts.Data;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 
 namespace FadeFactory_Accounts.Controllers
 {
@@ -14,6 +14,17 @@ namespace FadeFactory_Accounts.Controllers
     [Route("api/[controller]")]
     public class RegisterController : ControllerBase
     {
+        private readonly string _tokenKey;
+
+        public RegisterController()
+        {
+            _tokenKey = Environment.GetEnvironmentVariable("TOKEN");
+            if (string.IsNullOrEmpty(_tokenKey))
+            {
+                throw new InvalidOperationException("Token key is not configured.");
+            }
+        }
+
         public static AccountRegister accountRegister = new AccountRegister();
 
         [HttpPost("register")]
@@ -26,8 +37,8 @@ namespace FadeFactory_Accounts.Controllers
             accountRegister.PasswordSalt = passwordSalt;
 
             return Ok(accountRegister);
-
         }
+
         [HttpPost("login")]
         public async Task<ActionResult<string>> Login(Account request)
         {
@@ -52,9 +63,18 @@ namespace FadeFactory_Accounts.Controllers
                 new Claim(ClaimTypes.Name, accountRegister.FirstName)
             };
 
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes());
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenKey));
 
-            return "token";
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: creds
+            );
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+            return jwt;
         }
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
@@ -62,14 +82,23 @@ namespace FadeFactory_Accounts.Controllers
             using (var hmac = new HMACSHA512())
             {
                 passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
             }
+        }
+        [HttpGet("{account}")]
+        public ActionResult<AccountRegister> GetUser(string username)
+        {
+            if (accountRegister.FirstName == username)
+            {
+                return Ok(accountRegister);
+            }
+            return NotFound("User not found");
         }
         private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
         {
             using (var hmac = new HMACSHA512(passwordSalt))
             {
-                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
                 return computedHash.SequenceEqual(passwordHash);
             }
         }

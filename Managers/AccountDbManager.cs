@@ -15,6 +15,9 @@ public class AccountDbManager : IAccountService
 
     public async Task<Account> CreateAccount(Account account)
     {
+        int dbSize = (await _context.Accounts.ToListAsync()).LastOrDefault()?.AccountId ?? 0;
+        account.AccountId = dbSize + 1;
+
         if (_context.Accounts.Count(a => a.Email == account.Email) > 0) throw new Exception("Account with email already exists.");
         var result = _context.Accounts.Add(account);
         await _context.SaveChangesAsync();

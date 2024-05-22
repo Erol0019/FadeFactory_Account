@@ -42,9 +42,6 @@ public class AccountsController : ControllerBase
     {
         try
         {
-            int dbSize = (await _service.GetAllAccounts()).LastOrDefault()?.AccountId ?? 0;
-            account.AccountId = dbSize + 1;
-
             Account createdAccount = await _service.CreateAccount(account);
 
             String host = HttpContext.Request.Host.Value;

@@ -1,0 +1,6 @@
+cosmosDbEndpoint = COSMOS_DB_ENDPOINT
+cosmosDbName =  COSMOS_DB_NAME
+cosmosDbKey = COSMOS_DB_KEY
+
+#JWT
+TOKEN=JWT_TOKEN

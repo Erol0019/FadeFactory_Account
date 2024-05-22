@@ -26,7 +26,7 @@ public class AccountsController : ControllerBase
         return Ok(account);
     }
 
-    [HttpGet("getAll"), Authorize(Roles = "Admin")]
+    [HttpGet("getAll"), Authorize]
     public async Task<ActionResult<IEnumerable<Account>>> GetAllAccounts()
     {
         try

@@ -9,108 +9,107 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 
-namespace FadeFactory_Accounts.Controllers
+namespace FadeFactory_Accounts.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class AccountsController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class AccountsController : ControllerBase
+    private readonly IAccountService _service;
+    private readonly string _tokenKey;
+
+    public AccountsController(IAccountService service)
     {
-        private readonly IAccountService _service;
-        private readonly string _tokenKey;
-
-        public AccountsController(IAccountService service)
+        _service = service;
+        _tokenKey = Environment.GetEnvironmentVariable("TOKEN");
+        if (string.IsNullOrEmpty(_tokenKey))
         {
-            _service = service;
-            _tokenKey = Environment.GetEnvironmentVariable("TOKEN");
-            if (string.IsNullOrEmpty(_tokenKey))
-            {
-                throw new InvalidOperationException("Token key is not configured.");
-            }
+            throw new InvalidOperationException("Token key is not configured.");
         }
+    }
 
-        [HttpGet("{AccountId}")]
-        public async Task<ActionResult<Account>> GetAccount(int AccountId)
+    [HttpGet("{AccountId}")]
+    public async Task<ActionResult<Account>> GetAccount(int AccountId)
+    {
+        Account account = await _service.GetAccount(AccountId);
+        if (account.AccountId == -1) return NotFound($"No account with ID '{AccountId}'");
+        return Ok(account);
+    }
+
+    [HttpGet("getAll"), Authorize]
+    public async Task<ActionResult<IEnumerable<Account>>> GetAllAccounts()
+    {
+        try
         {
-            Account account = await _service.GetAccount(AccountId);
-            if (account.AccountId == -1) return NotFound($"No account with ID '{AccountId}'");
-            return Ok(account);
+            var accounts = await _service.GetAllAccounts();
+            return Ok(accounts);
         }
-
-        [HttpGet("getAll"), Authorize]
-        public async Task<ActionResult<IEnumerable<Account>>> GetAllAccounts()
+        catch (Exception e)
         {
-            try
-            {
-                var accounts = await _service.GetAllAccounts();
-                return Ok(accounts);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            return BadRequest(e.Message);
         }
+    }
 
-        [HttpPost("register")]
-        public async Task<ActionResult<Account>> CreateAccount(Account account)
+    [HttpPost("register")]
+    public async Task<ActionResult<Account>> CreateAccount(Account account)
+    {
+        try
         {
-            try
-            {
-                var createdAccount = await _service.RegisterAccount(account);
-                string host = HttpContext.Request.Host.Value;
-                string uri = $"https://{host}/api/Accounts/{createdAccount.AccountId}";
-                return Created(uri, createdAccount);
-            }
-            catch (Exception ex)
-            {
-                if (ex.Message.Contains("Account with email already exists."))
-                {
-                    return Conflict(new { message = "Email is already in use" });
-                }
-
-                return BadRequest(ex.Message);
-            }
+            var createdAccount = await _service.RegisterAccount(account);
+            string host = HttpContext.Request.Host.Value;
+            string uri = $"https://{host}/api/Accounts/{createdAccount.AccountId}";
+            return Created(uri, createdAccount);
         }
-
-        [HttpDelete("{AccountId}")]
-        public async Task<IActionResult> DeleteAccount(int AccountId)
+        catch (Exception ex)
         {
-            try
+            if (ex.Message.Contains("Account with email already exists."))
             {
-                await _service.DeleteAccount(AccountId);
-                return Ok();
+                return Conflict(new { message = "Email is already in use" });
             }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+
+            return BadRequest(ex.Message);
         }
+    }
 
-        [HttpPut()]
-        public async Task<IActionResult> UpdateAccount([FromBody] Account account)
+    [HttpDelete("{AccountId}")]
+    public async Task<IActionResult> DeleteAccount(int AccountId)
+    {
+        try
         {
-            try
-            {
-                Account updatedAccount = await _service.UpdateAccount(account);
-                return Ok(updatedAccount);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            await _service.DeleteAccount(AccountId);
+            return Ok();
         }
-
-        [HttpPost("login")]
-        public async Task<ActionResult<string>> Login(Account request)
+        catch (Exception e)
         {
-            try
-            {
-                string token = await _service.Login(request);
-                return Ok(token);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPut()]
+    public async Task<IActionResult> UpdateAccount([FromBody] Account account)
+    {
+        try
+        {
+            Account updatedAccount = await _service.UpdateAccount(account);
+            return Ok(updatedAccount);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost("login")]
+    public async Task<ActionResult<string>> Login(Account request)
+    {
+        try
+        {
+            string token = await _service.Login(request);
+            return Ok(token);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 }

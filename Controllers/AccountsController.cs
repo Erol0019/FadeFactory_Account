@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using FadeFactory_Accounts.Models;
-using FadeFactory_Accounts.Data;
-using System.Threading.Tasks;
+using FadeFactory_Accounts.Services;
 
 namespace FadeFactory_Accounts.Controllers
 {
@@ -10,73 +9,79 @@ namespace FadeFactory_Accounts.Controllers
     [ApiController]
     public class AccountsController : ControllerBase
     {
-        private readonly IAccountRepository _accountRepository;
-        public AccountsController(IAccountRepository accountRepository)
+        private readonly IAccountService _service;
+        public AccountsController(IAccountService service)
         {
-            _accountRepository = accountRepository;
+            _service = service;
         }
+
         [HttpGet("{Id}")]
-        public async Task<ActionResult<Account>> GetAccountByIdAsync(string Id)
-
+        public async Task<ActionResult<Account>> GetAccount(string AccountId)
         {
-            var tasks = await _accountRepository.GetAccountByIdAsync(Id);
-            if (tasks == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(tasks);
+            Account account = await _service.GetAccount(AccountId);
+            if (account.AccountId == "-1") return NotFound($"No account with ID '{AccountId}'");
+            return Ok(account);
         }
+
         [HttpGet("getAll")]
         public async Task<ActionResult<IEnumerable<Account>>> GetAllAccounts()
         {
-            var accounts = await _accountRepository.GetAllAccountsAsync();
+            var accounts = await _service.GetAllAccounts();
+            if (accounts == null)
+            {
+                return NotFound();
+            }
             return Ok(accounts);
         }
 
         [HttpPost("register")]
         public async Task<ActionResult<Account>> CreateAccount(Account account)
         {
-            account.Id = Guid.NewGuid().ToString();
+            account.AccountId = Guid.NewGuid().ToString();
 
-            Account createdAccount = await _accountRepository.CreateAccountAsync(account);
+            Account createdAccount = await _service.CreateAccount(account);
+
+            var url = Url.RouteUrl("GetAccountByIdAsync", new { createdAccount.AccountId }, Request.Scheme);
+            System.Console.WriteLine(url);
 
             String host = HttpContext.Request.Host.Value;
-            String uri = $"https://{host}/api/Accounts/{createdAccount.Id}";
+            String uri = $"https://{host}/api/Accounts/{createdAccount.AccountId}";
 
             return Created(uri, createdAccount);
+            //return CreatedAtAction(nameof(GetAccountByIdAsync), new { createdAccount.Id }, createdAccount);
         }
+
         [HttpDelete("{Id}")]
         public async Task<IActionResult> DeleteAccount(string Id)
         {
-            var existingAccount = await _accountRepository.GetAccountByIdAsync(Id);
+            var existingAccount = await _service.GetAccount(Id);
             if (existingAccount == null)
             {
                 return NotFound();
             }
 
-            await _accountRepository.DeleteAccountAsync(Id);
+            await _service.DeleteAccount(Id);
             return NoContent();
         }
+
         [HttpPut("{Id}")]
         public async Task<IActionResult> UpdateAccount(string Id, [FromBody] Account account)
         {
-            if (Id != account.Id)
+            if (Id != account.AccountId)
             {
                 return BadRequest("Account ID mismatch");
             }
 
-            var existingAccount = await _accountRepository.GetAccountByIdAsync(Id);
+            var existingAccount = await _service.GetAccount(Id);
             if (existingAccount == null)
             {
                 return NotFound();
             }
 
-            account.Id = Id;
+            account.AccountId = Id;
 
-            var updatedAccount = await _accountRepository.UpdateAccountAsync(account);
+            var updatedAccount = await _service.UpdateAccount(account);
             return Ok(updatedAccount);
-
         }
     }
 }

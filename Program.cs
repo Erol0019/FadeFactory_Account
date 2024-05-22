@@ -1,10 +1,8 @@
-using FadeFactory_Accounts.Controllers;
-using System.Configuration;
-using FadeFactory_Accounts.Data;
 using Microsoft.Azure.Cosmos;
-using System.Net;
-using System.Collections;
-using DotNetEnv;
+using Microsoft.EntityFrameworkCore;
+using FadeFactory_Accounts.Models;
+using FadeFactory_Accounts.Services;
+using FadeFactory_Accounts.Managers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,22 +15,14 @@ DotNetEnv.Env.Load(); //Added
 var configuration = builder.Configuration; //Added
 
 // Add services to the container.
+string cosmosDbEndpoint = Environment.GetEnvironmentVariable("cosmosDbEndpoint") ?? throw new ArgumentNullException();
+string cosmosDbKey = Environment.GetEnvironmentVariable("cosmosDbKey") ?? throw new ArgumentNullException();
+string cosmosDbName = Environment.GetEnvironmentVariable("cosmosDbName") ?? throw new ArgumentNullException();
+builder.Services.AddDbContext<AccountDbContext>(options => options.UseCosmos(cosmosDbEndpoint, cosmosDbKey, cosmosDbName));
 
 //added
 builder.Services.AddSingleton((provider) =>
 {
-    var cosmosDbEndpoint = Environment.GetEnvironmentVariable("cosmosDbEndpoint");
-    var cosmosDbKey = Environment.GetEnvironmentVariable("cosmosDbKey");
-    var cosmosDbName = Environment.GetEnvironmentVariable("cosmosDbName");
-    if (string.IsNullOrEmpty(cosmosDbEndpoint) || string.IsNullOrEmpty(cosmosDbKey) || string.IsNullOrEmpty(cosmosDbName))
-    {
-        throw new ArgumentNullException("Cosmos DB configuration is missing.");
-    }
-
-    // var cosmosDbEndpoint = configuration["cosmosDbSettings:cosmosDbEndpoint"];
-    // var cosmosDbKey = configuration["cosmosDbSettings:cosmosDbKey"];
-    // var cosmosDbName = configuration["cosmosDbSettings:cosmosDbName"];
-
     var cosmosClientOptions = new CosmosClientOptions
     {
         ApplicationName = cosmosDbName
@@ -55,7 +45,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IAccountRepository, AccountRepository>(); //added
+builder.Services.AddScoped<IAccountService, AccountDbManager>(); //added
 
 builder.Services.AddCors(options =>
 {

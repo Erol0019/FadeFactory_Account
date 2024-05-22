@@ -14,4 +14,12 @@ public class Account
     public string? Password { get; set; }
     [JsonProperty("isPromotional")]
     public bool IsPromotional { get; set; }
+
+    public override string ToString()
+    {
+        return $"Id: {Id}, FirstName: {FirstName}, Email: {Email}, Password: {Password}, IsPromotional: {IsPromotional}";
+    }
 }
+
+
+

@@ -39,8 +39,12 @@ namespace FadeFactory_Accounts.Controllers
         {
             account.Id = Guid.NewGuid().ToString();
 
-            var createdAccount = await _accountRepository.CreateAccountAsync(account);
-            return CreatedAtAction(nameof(GetAccountByIdAsync), new { createdAccount.Id }, createdAccount);
+            Account createdAccount = await _accountRepository.CreateAccountAsync(account);
+
+            String host = HttpContext.Request.Host.Value;
+            String uri = $"https://{host}/api/Accounts/{createdAccount.Id}";
+
+            return Created(uri, createdAccount);
         }
         [HttpDelete("{Id}")]
         public async Task<IActionResult> DeleteAccount(string Id)

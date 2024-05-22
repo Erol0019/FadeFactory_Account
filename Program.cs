@@ -2,12 +2,40 @@ using Microsoft.EntityFrameworkCore;
 using FadeFactory_Accounts.Models;
 using FadeFactory_Accounts.Services;
 using FadeFactory_Accounts.Managers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        Description = "Authenticate(\"Bearer { TOKEN }\")",
+        In = ParameterLocation.Header,
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey
+    });
+    options.OperationFilter<SecurityRequirementsOperationFilter>();
+
+});
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN"))),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
 
 DotNetEnv.Env.Load();
 
@@ -48,6 +76,8 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 
 app.UseCors();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

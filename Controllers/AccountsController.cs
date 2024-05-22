@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using FadeFactory_Accounts.Models;
 using FadeFactory_Accounts.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FadeFactory_Accounts.Controllers
 {
@@ -23,7 +24,7 @@ namespace FadeFactory_Accounts.Controllers
             return Ok(account);
         }
 
-        [HttpGet("getAll")]
+        [HttpGet("getAll"), Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<Account>>> GetAllAccounts()
         {
             var accounts = await _service.GetAllAccounts();

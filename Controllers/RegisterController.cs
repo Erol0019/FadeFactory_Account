@@ -15,6 +15,7 @@ namespace FadeFactory_Accounts.Controllers
     public class RegisterController : ControllerBase
     {
         private readonly string _tokenKey;
+        public static AccountRegister accountRegister = new AccountRegister();
 
         public RegisterController()
         {
@@ -25,7 +26,7 @@ namespace FadeFactory_Accounts.Controllers
             }
         }
 
-        public static AccountRegister accountRegister = new AccountRegister();
+
 
         [HttpPost("register")]
         public async Task<ActionResult<AccountRegister>> Register(Account request)

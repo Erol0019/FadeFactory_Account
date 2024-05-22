@@ -15,6 +15,7 @@ namespace FadeFactory_Accounts.Managers
 
         public async Task<Account> CreateAccount(Account account)
         {
+            if (_context.Accounts.Count(a => a.Email == account.Email) > 0) throw new Exception("Account with email already exists.");
             var result = _context.Accounts.Add(account);
             await _context.SaveChangesAsync();
             return result.Entity;
@@ -42,6 +43,11 @@ namespace FadeFactory_Accounts.Managers
 
         public async Task<Account> UpdateAccount(Account account)
         {
+            if (_context.Accounts.Count(a => a.Email == account.Email && a.AccountId != account.AccountId) > 0)
+            {
+                throw new Exception("Account with this email already exists.");
+            }
+
             var result = _context.Accounts.Update(account);
             await _context.SaveChangesAsync();
             return result.Entity;

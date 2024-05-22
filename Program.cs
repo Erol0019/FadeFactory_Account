@@ -1,4 +1,3 @@
-using Microsoft.Azure.Cosmos;
 using Microsoft.EntityFrameworkCore;
 using FadeFactory_Accounts.Models;
 using FadeFactory_Accounts.Services;
@@ -10,9 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-DotNetEnv.Env.Load(); //Added
-
-var configuration = builder.Configuration; //Added
+DotNetEnv.Env.Load();
 
 // Add services to the container.
 string cosmosDbEndpoint = Environment.GetEnvironmentVariable("cosmosDbEndpoint") ?? throw new ArgumentNullException();
@@ -20,32 +17,12 @@ string cosmosDbKey = Environment.GetEnvironmentVariable("cosmosDbKey") ?? throw 
 string cosmosDbName = Environment.GetEnvironmentVariable("cosmosDbName") ?? throw new ArgumentNullException();
 builder.Services.AddDbContext<AccountDbContext>(options => options.UseCosmos(cosmosDbEndpoint, cosmosDbKey, cosmosDbName));
 
-//added
-builder.Services.AddSingleton((provider) =>
-{
-    var cosmosClientOptions = new CosmosClientOptions
-    {
-        ApplicationName = cosmosDbName
-    };
-
-    var loggerFactory = LoggerFactory.Create(builder =>
-    {
-        builder.AddConsole();
-    });
-
-    var cosmosClient = new CosmosClient(cosmosDbEndpoint, cosmosDbKey, cosmosClientOptions);
-
-    cosmosClient.ClientOptions.ConnectionMode = ConnectionMode.Gateway;
-
-    return cosmosClient;
-});
-//end
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IAccountService, AccountDbManager>(); //added
+builder.Services.AddScoped<IAccountService, AccountDbManager>();
 
 builder.Services.AddCors(options =>
 {

@@ -8,24 +8,19 @@ namespace FadeFactory_Accounts.Models;
 
 public class Account
 {
-    [Required]
-    [Key]
+    [Key, Required]
     [JsonProperty("accountId")]
     public int AccountId { get; set; }
 
-    [Required]
     [JsonProperty("firstName")]
-    [StringLength(255)]
+    [StringLength(255), Required]
     public string FirstName { get; set; }
 
-    [Required]
-    [StringLength(255)]
-    //[Index(IsUnique = true)]
+    [StringLength(255), Required]
     [JsonProperty("email")]
     public string Email { get; set; }
 
-    [Required]
-    [StringLength(255)]
+    [StringLength(255), Required]
     [JsonProperty("password")]
     public string Password { get; set; }
 

@@ -61,7 +61,8 @@ namespace FadeFactory_Accounts.Controllers
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, accountRegister.FirstName)
+                new Claim(ClaimTypes.Name, accountRegister.FirstName),
+                new Claim(ClaimTypes.Role, "NormalAccount")
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenKey));

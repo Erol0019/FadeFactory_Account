@@ -31,7 +31,8 @@ namespace FadeFactory_Accounts.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<AccountRegister>> Register(Account request)
         {
-            CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            string password = Encoding.UTF8.GetString(request.PasswordHash);
+            CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
 
             accountRegister.FirstName = request.FirstName;
             accountRegister.PasswordHash = passwordHash;
@@ -48,7 +49,9 @@ namespace FadeFactory_Accounts.Controllers
                 return BadRequest("Invalid account");
             }
 
-            if (!VerifyPasswordHash(request.Password, accountRegister.PasswordHash, accountRegister.PasswordSalt))
+            string passwordHashString = Encoding.UTF8.GetString(request.PasswordHash);
+
+            if (!VerifyPasswordHash(passwordHashString, accountRegister.PasswordHash, accountRegister.PasswordSalt))
             {
                 return BadRequest("Invalid Password");
             }

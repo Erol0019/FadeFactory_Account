@@ -37,16 +37,27 @@ namespace FadeFactory_Accounts.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<Account>> CreateAccount(Account account)
         {
-            int dbSize = (await _service.GetAllAccounts()).LastOrDefault()?.AccountId ?? 0;
-            account.AccountId = dbSize + 1;
+            try
+            {
+                int dbSize = (await _service.GetAllAccounts()).LastOrDefault()?.AccountId ?? 0;
+                account.AccountId = dbSize + 1;
 
-            Account createdAccount = await _service.CreateAccount(account);
+                Account createdAccount = await _service.CreateAccount(account);
 
-            String host = HttpContext.Request.Host.Value;
-            String uri = $"https://{host}/api/Accounts/{createdAccount.AccountId}";
+                String host = HttpContext.Request.Host.Value;
+                String uri = $"https://{host}/api/Accounts/{createdAccount.AccountId}";
 
-            return Created(uri, createdAccount);
-            //return CreatedAtAction(nameof(GetAccountByIdAsync), new { createdAccount.Id }, createdAccount);
+                return Created(uri, createdAccount);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("Account with email already exists."))
+                {
+                    return Conflict(new { message = "Email is already in use" });
+                }
+
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{AccountId}")]

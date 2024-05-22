@@ -20,16 +20,16 @@ namespace FadeFactory_Accounts.Managers
             return result.Entity;
         }
 
-        public async Task DeleteAccount(string AccountId)
+        public async Task DeleteAccount(int AccountId)
         {
             _context.Accounts.Remove(new Account { AccountId = AccountId });
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Account> GetAccount(string AccountId)
+        public async Task<Account> GetAccount(int AccountId)
         {
             if (_context.Accounts == null) throw new NullReferenceException();
-            var result = await _context.Accounts.FirstOrDefaultAsync(x => x.AccountId == AccountId);
+            var result = await _context.Accounts.FirstOrDefaultAsync(a => a.AccountId == AccountId);
             if (result == null) throw new Exception("Account not found.");
             return result;
         }

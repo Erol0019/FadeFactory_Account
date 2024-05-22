@@ -15,11 +15,11 @@ namespace FadeFactory_Accounts.Controllers
             _service = service;
         }
 
-        [HttpGet("{Id}")]
-        public async Task<ActionResult<Account>> GetAccount(string AccountId)
+        [HttpGet("{AccountId}")]
+        public async Task<ActionResult<Account>> GetAccount(int AccountId)
         {
             Account account = await _service.GetAccount(AccountId);
-            if (account.AccountId == "-1") return NotFound($"No account with ID '{AccountId}'");
+            if (account.AccountId == -1) return NotFound($"No account with ID '{AccountId}'");
             return Ok(account);
         }
 
@@ -37,7 +37,8 @@ namespace FadeFactory_Accounts.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<Account>> CreateAccount(Account account)
         {
-            account.AccountId = Guid.NewGuid().ToString();
+            int dbSize = (await _service.GetAllAccounts()).LastOrDefault()?.AccountId ?? 0;
+            account.AccountId = dbSize + 1;
 
             Account createdAccount = await _service.CreateAccount(account);
 
@@ -51,37 +52,32 @@ namespace FadeFactory_Accounts.Controllers
             //return CreatedAtAction(nameof(GetAccountByIdAsync), new { createdAccount.Id }, createdAccount);
         }
 
-        [HttpDelete("{Id}")]
-        public async Task<IActionResult> DeleteAccount(string Id)
+        [HttpDelete("{AccountId}")]
+        public async Task<IActionResult> DeleteAccount(int AccountId)
         {
-            var existingAccount = await _service.GetAccount(Id);
-            if (existingAccount == null)
+            try
             {
-                return NotFound();
+                await _service.DeleteAccount(AccountId);
+                return Ok();
             }
-
-            await _service.DeleteAccount(Id);
-            return NoContent();
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
-        [HttpPut("{Id}")]
-        public async Task<IActionResult> UpdateAccount(string Id, [FromBody] Account account)
+        [HttpPut()]
+        public async Task<IActionResult> UpdateAccount([FromBody] Account account)
         {
-            if (Id != account.AccountId)
+            try
             {
-                return BadRequest("Account ID mismatch");
+                Account updatedAccount = await _service.UpdateAccount(account);
+                return Ok(updatedAccount);
             }
-
-            var existingAccount = await _service.GetAccount(Id);
-            if (existingAccount == null)
+            catch (Exception e)
             {
-                return NotFound();
+                return BadRequest(e.Message);
             }
-
-            account.AccountId = Id;
-
-            var updatedAccount = await _service.UpdateAccount(account);
-            return Ok(updatedAccount);
         }
     }
 }

@@ -42,9 +42,6 @@ namespace FadeFactory_Accounts.Controllers
 
             Account createdAccount = await _service.CreateAccount(account);
 
-            var url = Url.RouteUrl("GetAccountByIdAsync", new { createdAccount.AccountId }, Request.Scheme);
-            System.Console.WriteLine(url);
-
             String host = HttpContext.Request.Host.Value;
             String uri = $"https://{host}/api/Accounts/{createdAccount.AccountId}";
 

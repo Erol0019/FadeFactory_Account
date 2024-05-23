@@ -23,7 +23,7 @@ public class AccountsController : ControllerBase
         _service = service;
     }
 
-    [HttpGet("{AccountId}"), Authorize]
+    [HttpGet("{AccountId}")]
     public async Task<ActionResult<Account>> GetAccount(int AccountId)
     {
         Account account = await _service.GetAccount(AccountId);

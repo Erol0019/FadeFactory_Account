@@ -23,7 +23,7 @@ public class AccountsController : ControllerBase
         _service = service;
     }
 
-    [HttpGet("{AccountId}")]
+    [HttpGet("{AccountId}"), Authorize]
     public async Task<ActionResult<Account>> GetAccount(int AccountId)
     {
         Account account = await _service.GetAccount(AccountId);
@@ -46,11 +46,11 @@ public class AccountsController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult<Account>> CreateAccount(Account account)
+    public async Task<ActionResult<Account>> CreateAccount(AccountDTO account)
     {
         try
         {
-            var createdAccount = await _service.RegisterAccount(account);
+            var createdAccount = await _service.CreateAccount(account);
             string host = HttpContext.Request.Host.Value;
             string uri = $"https://{host}/api/Accounts/{createdAccount.AccountId}";
             return Created(uri, createdAccount);
@@ -66,7 +66,7 @@ public class AccountsController : ControllerBase
         }
     }
 
-    [HttpDelete("{AccountId}")]
+    [HttpDelete("{AccountId}"), Authorize]
     public async Task<IActionResult> DeleteAccount(int AccountId)
     {
         try
@@ -80,7 +80,7 @@ public class AccountsController : ControllerBase
         }
     }
 
-    [HttpPut()]
+    [HttpPut(), Authorize]
     public async Task<IActionResult> UpdateAccount([FromBody] Account account)
     {
         try
@@ -95,7 +95,7 @@ public class AccountsController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<string>> Login(Account request)
+    public async Task<ActionResult<string>> Login(AccountDTO request)
     {
         try
         {

@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using FadeFactory_Accounts.Helpers;
+using System.Net;
 
 namespace FadeFactory_Accounts.Managers;
 
@@ -17,17 +18,19 @@ public class AccountDbManager : IAccountService
 
     public AccountDbManager(AccountDbContext context)
     {
+        _authHelper = new AuthHelper();
         _context = context;
     }
 
-    public async Task<Account> CreateAccount(Account account)
+    public async Task<Account> CreateAccount(AccountDTO accountDTO)
     {
         int dbSize = (await _context.Accounts.ToListAsync()).LastOrDefault()?.AccountId ?? 0;
-        account.AccountId = dbSize + 1;
+        accountDTO.AccountId = dbSize + 1;
 
-        if (_context.Accounts.Any(a => a.Email == account.Email))
+        if (_context.Accounts.Count(a => a.Email == accountDTO.Email) > 0)
             throw new Exception("Account with email already exists.");
 
+        var account = accountDTO.Adapt();
         var result = _context.Accounts.Add(account);
         await _context.SaveChangesAsync();
         return result.Entity;
@@ -53,7 +56,7 @@ public class AccountDbManager : IAccountService
 
     public async Task<Account> UpdateAccount(Account account)
     {
-        if (_context.Accounts.Any(a => a.Email == account.Email && a.AccountId != account.AccountId))
+        if (_context.Accounts.Count(a => a.Email == account.Email && a.AccountId != account.AccountId) > 0)
         {
             throw new Exception("Account with this email already exists.");
         }
@@ -63,23 +66,13 @@ public class AccountDbManager : IAccountService
         return result.Entity;
     }
 
-    public async Task<Account> RegisterAccount(Account account)
+    public async Task<string> Login(AccountDTO loginRequest)
     {
-        _authHelper.CreatePasswordHash(Encoding.UTF8.GetString(account.PasswordHash), out byte[] passwordHash, out byte[] passwordSalt);
-        account.PasswordHash = passwordHash;
-        account.PasswordSalt = passwordSalt;
-
-        return await CreateAccount(account);
-    }
-
-    public async Task<string> Login(Account loginRequest)
-    {
-        var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Email == loginRequest.Email);
-        if (account == null || !_authHelper.VerifyPasswordHash(Encoding.UTF8.GetString(loginRequest.PasswordHash), account.PasswordHash, account.PasswordSalt))
+        var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Email == loginRequest.Email) ?? throw new Exception("Invalid credentials.");
+        if (!_authHelper.VerifyPasswordHash(loginRequest.Password, account.PasswordHash, account.PasswordSalt))
         {
             throw new Exception("Invalid credentials.");
         }
-
         return _authHelper.CreateToken(account);
     }
 }

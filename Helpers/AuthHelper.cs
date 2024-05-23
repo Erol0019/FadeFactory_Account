@@ -17,8 +17,9 @@ public class AuthHelper
     {
         var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, account.FirstName),
-                new Claim(ClaimTypes.Email, account.Email)
+                new Claim(ClaimTypes.NameIdentifier, account.AccountId.ToString()),
+                new Claim(ClaimTypes.Name, account.FirstName.ToString()),
+                new Claim(ClaimTypes.Email, account.Email.ToString())
             };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtTokenSecret));

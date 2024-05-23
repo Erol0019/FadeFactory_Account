@@ -1,6 +1,6 @@
+using FadeFactory_Accounts.Helpers;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace FadeFactory_Accounts.Models;
 

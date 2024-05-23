@@ -11,6 +11,8 @@ using System.Security.Claims;
 
 DotNetEnv.Env.Load();
 
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 string jwtTokenSecret = Environment.GetEnvironmentVariable("TOKEN") ?? throw new ArgumentNullException();
@@ -19,12 +21,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Authenticate(\"Bearer { TOKEN }\")",
+        Description = "Bearer {TOKEN}",
         In = ParameterLocation.Header,
         Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
     });
     options.OperationFilter<SecurityRequirementsOperationFilter>();
 });

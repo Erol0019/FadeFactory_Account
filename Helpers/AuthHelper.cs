@@ -1,5 +1,3 @@
-
-
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -19,7 +17,8 @@ public class AuthHelper
             {
                 new Claim(ClaimTypes.NameIdentifier, account.AccountId.ToString()),
                 new Claim(ClaimTypes.Name, account.FirstName.ToString()),
-                new Claim(ClaimTypes.Email, account.Email.ToString())
+                new Claim(ClaimTypes.Email, account.Email.ToString()),
+                new Claim(ClaimTypes.Role, account.IsAdmin ? "Admin" : "User")
             };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtTokenSecret));

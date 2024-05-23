@@ -1,12 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using FadeFactory_Accounts.Models;
 using FadeFactory_Accounts.Services;
-using System;
-using System.Security.Cryptography;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
@@ -23,7 +17,7 @@ public class AccountsController : ControllerBase
         _service = service;
     }
 
-    [HttpGet("{AccountId}"), Authorize]
+    [HttpGet("{AccountId}"), Authorize(Roles = "Admin")]
     public async Task<ActionResult<Account>> GetAccount(int AccountId)
     {
         Account account = await _service.GetAccount(AccountId);
@@ -31,7 +25,7 @@ public class AccountsController : ControllerBase
         return Ok(account);
     }
 
-    [HttpGet("getAll"), Authorize]
+    [HttpGet("getAll"), Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<Account>>> GetAllAccounts()
     {
         try
@@ -66,7 +60,7 @@ public class AccountsController : ControllerBase
         }
     }
 
-    [HttpDelete("{AccountId}"), Authorize]
+    [HttpDelete("{AccountId}"), Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteAccount(int AccountId)
     {
         try
@@ -80,7 +74,7 @@ public class AccountsController : ControllerBase
         }
     }
 
-    [HttpPut(), Authorize]
+    [HttpPut(), Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateAccount([FromBody] Account account)
     {
         try

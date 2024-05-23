@@ -1,9 +1,5 @@
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json.Serialization;
 using FadeFactory_Accounts.Helpers;
 
 namespace FadeFactory_Accounts.Models;
@@ -27,7 +23,8 @@ public class AccountDTO : AccountParent
             Email = Email,
             PasswordHash = passwordHash,
             PasswordSalt = passwordSalt,
-            IsPromotional = IsPromotional
+            IsPromotional = IsPromotional,
+            IsAdmin = IsAdmin
         };
     }
 }

@@ -1,5 +1,5 @@
-using FadeFactory_Accounts.Helpers;
 using Newtonsoft.Json;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace FadeFactory_Accounts.Models;
@@ -20,6 +20,12 @@ public class AccountParent
 
     [Required]
     [JsonProperty("isPromotional")]
+    [DefaultValue(false)]
     public bool IsPromotional { get; set; }
+
+    [Required]
+    [JsonProperty("IsAdmin")]
+    [DefaultValue(false)]
+    public bool IsAdmin { get; set; }
 }
 

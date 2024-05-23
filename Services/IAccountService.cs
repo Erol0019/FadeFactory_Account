@@ -1,6 +1,4 @@
 using FadeFactory_Accounts.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace FadeFactory_Accounts.Services;
 public interface IAccountService

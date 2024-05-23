@@ -1,13 +1,7 @@
 using FadeFactory_Accounts.Models;
 using FadeFactory_Accounts.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 using FadeFactory_Accounts.Helpers;
-using System.Net;
 
 namespace FadeFactory_Accounts.Managers;
 

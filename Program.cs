@@ -11,8 +11,6 @@ using System.Security.Claims;
 
 DotNetEnv.Env.Load();
 
-DotNetEnv.Env.Load();
-
 var builder = WebApplication.CreateBuilder(args);
 
 string jwtTokenSecret = Environment.GetEnvironmentVariable("TOKEN") ?? throw new ArgumentNullException();

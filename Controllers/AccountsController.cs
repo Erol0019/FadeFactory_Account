@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using FadeFactory_Accounts.Models;
 using FadeFactory_Accounts.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace FadeFactory_Accounts.Controllers;
 

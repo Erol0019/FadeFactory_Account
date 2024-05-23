@@ -8,6 +8,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace FadeFactory_Accounts.Controllers;
 
@@ -16,16 +17,10 @@ namespace FadeFactory_Accounts.Controllers;
 public class AccountsController : ControllerBase
 {
     private readonly IAccountService _service;
-    private readonly string _tokenKey;
 
     public AccountsController(IAccountService service)
     {
         _service = service;
-        _tokenKey = Environment.GetEnvironmentVariable("TOKEN");
-        if (string.IsNullOrEmpty(_tokenKey))
-        {
-            throw new InvalidOperationException("Token key is not configured.");
-        }
     }
 
     [HttpGet("{AccountId}")]

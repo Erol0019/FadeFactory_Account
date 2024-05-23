@@ -6,11 +6,13 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using FadeFactory_Accounts.Helpers;
 
 namespace FadeFactory_Accounts.Managers;
 
 public class AccountDbManager : IAccountService
 {
+    private readonly AuthHelper _authHelper;
     private readonly AccountDbContext _context;
 
     public AccountDbManager(AccountDbContext context)
@@ -63,7 +65,7 @@ public class AccountDbManager : IAccountService
 
     public async Task<Account> RegisterAccount(Account account)
     {
-        CreatePasswordHash(Encoding.UTF8.GetString(account.PasswordHash), out byte[] passwordHash, out byte[] passwordSalt);
+        _authHelper.CreatePasswordHash(Encoding.UTF8.GetString(account.PasswordHash), out byte[] passwordHash, out byte[] passwordSalt);
         account.PasswordHash = passwordHash;
         account.PasswordSalt = passwordSalt;
 
@@ -73,49 +75,11 @@ public class AccountDbManager : IAccountService
     public async Task<string> Login(Account loginRequest)
     {
         var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Email == loginRequest.Email);
-        if (account == null || !VerifyPasswordHash(Encoding.UTF8.GetString(loginRequest.PasswordHash), account.PasswordHash, account.PasswordSalt))
+        if (account == null || !_authHelper.VerifyPasswordHash(Encoding.UTF8.GetString(loginRequest.PasswordHash), account.PasswordHash, account.PasswordSalt))
         {
             throw new Exception("Invalid credentials.");
         }
 
-        return CreateToken(account);
-    }
-
-    private string CreateToken(Account account)
-    {
-        var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, account.FirstName),
-                new Claim(ClaimTypes.Email, account.Email)
-            };
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN")));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-        var token = new JwtSecurityToken(
-            claims: claims,
-            expires: DateTime.Now.AddDays(10),
-            signingCredentials: creds
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-
-    private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-    {
-        using (var hmac = new HMACSHA512())
-        {
-            passwordSalt = hmac.Key;
-            passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-        }
-    }
-
-    private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
-    {
-        using (var hmac = new HMACSHA512(passwordSalt))
-        {
-            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return computedHash.SequenceEqual(passwordHash);
-        }
+        return _authHelper.CreateToken(account);
     }
 }

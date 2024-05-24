@@ -74,7 +74,7 @@ public class AccountsController : ControllerBase
     }
 
     [HttpPut(), Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateAccount([FromBody] Account account)
+    public async Task<IActionResult> UpdateAccount([FromBody] AccountDTO account)
     {
         try
         {

@@ -6,24 +6,22 @@ namespace FadeFactory_Accounts.Models;
 
 public class AccountParent
 {
-    [Key, Required]
+    [Key]
     [JsonProperty("accountId")]
     public int AccountId { get; set; }
 
     [JsonProperty("firstName")]
-    [StringLength(255), Required]
-    public string FirstName { get; set; }
+    [StringLength(255)]
+    public string? FirstName { get; set; }
 
-    [StringLength(255), Required]
+    [StringLength(255)]
     [JsonProperty("email")]
-    public string Email { get; set; }
+    public string? Email { get; set; }
 
-    [Required]
     [JsonProperty("isPromotional")]
     [DefaultValue(false)]
     public bool IsPromotional { get; set; }
 
-    [Required]
     [JsonProperty("IsAdmin")]
     [DefaultValue(false)]
     public bool IsAdmin { get; set; }

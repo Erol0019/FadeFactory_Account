@@ -18,6 +18,9 @@ public class AccountDbManager : IAccountService
 
     public async Task<Account> CreateAccount(AccountDTO accountDTO)
     {
+        if (accountDTO.FirstName == null || accountDTO.Email == null || accountDTO.Password == null)
+            throw new Exception("A string is null.");
+
         int dbSize = (await _context.Accounts.ToListAsync()).LastOrDefault()?.AccountId ?? 0;
         accountDTO.AccountId = dbSize + 1;
 
@@ -48,16 +51,39 @@ public class AccountDbManager : IAccountService
         return await _context.Accounts.ToListAsync();
     }
 
-    public async Task<Account> UpdateAccount(Account account)
+    public async Task<Account> UpdateAccount(AccountDTO accountDTO)
     {
+        var account = accountDTO.Adapt();
         if (_context.Accounts.Count(a => a.Email == account.Email && a.AccountId != account.AccountId) > 0)
         {
             throw new Exception("Account with this email already exists.");
         }
 
-        var result = _context.Accounts.Update(account);
-        await _context.SaveChangesAsync();
-        return result.Entity;
+        var dbAccount = await _context.Accounts.FirstOrDefaultAsync(a => a.AccountId == account.AccountId);
+        if (dbAccount != null)
+        {
+            if (account.FirstName != null)
+            {
+                dbAccount.FirstName = account.FirstName;
+            }
+            if (account.Email != null)
+            {
+                dbAccount.Email = account.Email;
+            }
+            if (account.PasswordHash != null)
+            {
+                dbAccount.PasswordHash = account.PasswordHash;
+            }
+            if (account.PasswordSalt != null)
+            {
+                dbAccount.PasswordSalt = account.PasswordSalt;
+            }
+
+            await _context.SaveChangesAsync();
+            return dbAccount;
+        }
+
+        throw new Exception("Account not found.");
     }
 
     public async Task<string> Login(AccountDTO loginRequest)

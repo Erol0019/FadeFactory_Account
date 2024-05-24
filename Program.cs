@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using System.Security.Claims;
+using Azure.Messaging.ServiceBus;
 
 DotNetEnv.Env.Load();
 
@@ -71,6 +72,15 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
+
+//For Promotion Service
+builder.Services.AddSingleton(serviceProvider =>
+{
+    var connectionString = Environment.GetEnvironmentVariable("ConnectionString") ?? throw new ArgumentNullException("Service Bus Connection String is missing");
+    return new ServiceBusClient(connectionString);
+});
+
+
 
 var app = builder.Build();
 

@@ -27,6 +27,8 @@ public class AccountDbManager : IAccountService
         if (_context.Accounts.Count(a => a.Email == accountDTO.Email) > 0)
             throw new Exception("Account with email already exists.");
 
+        accountDTO.IsAdmin = false;
+
         var account = accountDTO.Adapt();
         var result = _context.Accounts.Add(account);
         await _context.SaveChangesAsync();
@@ -78,6 +80,8 @@ public class AccountDbManager : IAccountService
             {
                 dbAccount.PasswordSalt = account.PasswordSalt;
             }
+            dbAccount.IsAdmin = account.IsAdmin;
+            dbAccount.IsPromotional = account.IsPromotional;
 
             await _context.SaveChangesAsync();
             return dbAccount;

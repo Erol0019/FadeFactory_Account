@@ -26,9 +26,15 @@ namespace FadeFactory_Accounts.Controllers
             var messageBody = JsonConvert.SerializeObject(new { data = promotion });
             var message = new ServiceBusMessage(Encoding.UTF8.GetBytes(messageBody));
 
-            await sender.SendMessageAsync(message);
-
-            return Ok(new { Message = "Promotion message sent to queue successfully." });
+            try
+            {
+                await sender.SendMessageAsync(message);
+                return Ok("Promotion message sent to queue successfully.");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 cosmosDbEndpoint = COSMOS_DB_ENDPOINT
 cosmosDbName =  COSMOS_DB_NAME
 cosmosDbKey = COSMOS_DB_KEY
+ConnectionString = SERVICE_BUS_CONNECTION_STRING
 
 #JWT
 TOKEN=JWT_TOKEN
